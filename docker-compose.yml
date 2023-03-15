@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  postgre:
+    image: postgres:15
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=vsa
+      - POSTGRES_USER=vsa
+    volumes:
+      - ./configs:/docker-entrypoint-initdb.d
