@@ -18,7 +18,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static sk.stuba.fei.uim.vsa.pr1.utils.TestConstants.ID_FIELDS;
 import static sk.stuba.fei.uim.vsa.pr1.utils.TestUtils.*;
 
 public class SanityCheckTest {
@@ -42,26 +41,29 @@ public class SanityCheckTest {
         log.info("Searching for implementation of Thesis entity class");
         thesisClass = getEntityClassFromService((Class<AbstractThesisService<?, ?, ?>>) thesisService.getClass(), 2);
         assertNotNull(thesisClass);
+        assertTrue(checkIfClassIsEntity(thesisClass));
         log.info("Found entity class " + thesisClass.getCanonicalName());
         log.info("Searching for implementation of Teacher entity class");
         teacherClass = getEntityClassFromService((Class<AbstractThesisService<?, ?, ?>>) thesisService.getClass(), 1);
         assertNotNull(teacherClass);
+        assertTrue(checkIfClassIsEntity(teacherClass));
         log.info("Found entity class " + teacherClass.getCanonicalName());
         log.info("Searching for implementation of Student entity class");
         studentClass = getEntityClassFromService((Class<AbstractThesisService<?, ?, ?>>) thesisService.getClass(), 0);
         assertNotNull(studentClass);
+        assertTrue(checkIfClassIsEntity(studentClass));
         log.info("Found entity class " + studentClass.getCanonicalName());
 
         log.info("Searching for identifier property/field of type Long for entity class " + thesisClass.getName());
-        thesisIdField = findIdFieldOfEntityClass(Arrays.asList(ID_FIELDS), thesisClass);
+        thesisIdField = findIdFieldOfEntityClass(thesisClass);
         assertNotNull(thesisIdField);
         log.info("Found identifier for class " + thesisClass.getName() + " as field '" + thesisIdField + "'");
         log.info("Searching for identifier property/field of type Long for entity class " + teacherClass.getName());
-        teacherIdField = findIdFieldOfEntityClass(Arrays.asList(ID_FIELDS), teacherClass);
+        teacherIdField = findIdFieldOfEntityClass(teacherClass);
         assertNotNull(teacherIdField);
         log.info("Found identifier for class " + teacherClass.getName() + " as field '" + teacherIdField + "'");
         log.info("Searching for identifier property/field of type Long for entity class " + studentClass.getName());
-        studentIdField = findIdFieldOfEntityClass(Arrays.asList(ID_FIELDS), studentClass);
+        studentIdField = findIdFieldOfEntityClass(studentClass);
         assertNotNull(studentIdField);
         log.info("Found identifier for class " + studentClass.getName() + " as field '" + studentIdField + "'");
 
@@ -83,7 +85,7 @@ public class SanityCheckTest {
             log.info("Found date fields " + String.join(", ", dateFields) + " in class " + thesisClass.getName());
 
             log.info("Searching for status field in class " + thesisClass.getName());
-            List<String> statusFields = findField(thesis, "status"); // TODO zovšeobecniť
+            List<String> statusFields = findField(thesis, "status");
             assertNotNull(statusFields);
             assertFalse(statusFields.isEmpty());
             assertEquals(1, statusFields.size());

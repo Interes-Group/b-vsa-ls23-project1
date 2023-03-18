@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 import sk.stuba.fei.uim.vsa.pr1.AbstractThesisService;
 import sk.stuba.fei.uim.vsa.pr1.bonus.Pageable;
 
+import javax.persistence.Entity;
+import javax.persistence.Id;
 import java.lang.reflect.*;
 import java.sql.*;
 import java.util.*;
@@ -78,22 +80,25 @@ public class TestUtils {
     }
 
     public static <T> List<String> findField(Object obj, String fieldName, Class<T> fieldType, boolean exactMatch) {
-        return Arrays.stream(obj.getClass().getMethods()).filter(method -> {
-                    boolean check = method.getName().startsWith("get") && method.getParameterCount() == 0;
-                    if (fieldType != null) {
-                        check = check && Objects.equals(method.getReturnType(), fieldType);
-                    }
-                    if (fieldName != null) {
-                        if (exactMatch) {
-                            check = check && method.getName().equals("get" + capitalize(fieldName));
-                        } else {
-                            check = check && method.getName().toLowerCase().contains(fieldName.toLowerCase());
-                        }
-                    }
-                    return check;
-                })
+        return Arrays.stream(obj.getClass().getMethods())
+                .filter(m -> checkIfMethodIsGetter(m, fieldName, fieldType, exactMatch))
                 .map(method -> camelCase(method.getName().substring(3)))
                 .collect(Collectors.toList());
+    }
+
+    public static <T> boolean checkIfMethodIsGetter(Method method, String fieldName, Class<T> fieldType, boolean exactMatch) {
+        boolean check = method.getName().startsWith("get") && method.getParameterCount() == 0;
+        if (fieldType != null) {
+            check = check && Objects.equals(method.getReturnType(), fieldType);
+        }
+        if (fieldName != null) {
+            if (exactMatch) {
+                check = check && method.getName().equals("get" + capitalize(fieldName));
+            } else {
+                check = check && method.getName().toLowerCase().contains(fieldName.toLowerCase());
+            }
+        }
+        return check;
     }
 
     public static String capitalize(String str) {
@@ -121,9 +126,28 @@ public class TestUtils {
         return null;
     }
 
+    public static Long getEntityId(Object obj) throws NoSuchFieldException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
+        Field idField = Arrays.stream(obj.getClass().getDeclaredFields())
+                .filter(f -> f.isAnnotationPresent(Id.class) && f.getType().equals(Long.class))
+                .findAny()
+                .orElse(null);
+        if (idField == null) return null;
+        return getFieldValue(obj, idField.getName(), Long.class);
+    }
+
     public static void testToHaveAnIdField(Object obj, String idField) {
         try {
             Long value = getEntityId(obj, idField);
+            assertTrue(Objects.nonNull(value) && value > 0);
+        } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException |
+                 NoSuchFieldException e) {
+            fail(e);
+        }
+    }
+
+    public static void testToHaveAnIdField(Object obj) {
+        try {
+            Long value = getEntityId(obj);
             assertTrue(Objects.nonNull(value) && value > 0);
         } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException |
                  NoSuchFieldException e) {
@@ -146,6 +170,21 @@ public class TestUtils {
                 .distinct()
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Cannot find id field of Long type for entity class " + entityClass.getCanonicalName()));
+    }
+
+    public static String findIdFieldOfEntityClass(Class entityClass) {
+        return Arrays.stream(entityClass.getDeclaredFields())
+                .filter(f -> f.isAnnotationPresent(Id.class) && f.getType().equals(Long.class))
+                .filter(f -> Arrays.stream(entityClass.getMethods())
+                        .anyMatch(m -> checkIfMethodIsGetter(m, f.getName(), f.getType(), true)))
+                .map(Field::getName)
+                .distinct()
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Cannot find id field of Long type for entity class " + entityClass.getCanonicalName()));
+    }
+
+    public static boolean checkIfClassIsEntity(Class clazz) {
+        return clazz.isAnnotationPresent(Entity.class);
     }
 
     //---------------------------------

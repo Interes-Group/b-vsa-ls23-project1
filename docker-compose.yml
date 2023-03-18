@@ -3,7 +3,7 @@ version: '3.8'
 services:
   postgre:
     image: postgres:15
-    restart: always
+    restart: on-failure
     ports:
       - "5432:5432"
     environment:
