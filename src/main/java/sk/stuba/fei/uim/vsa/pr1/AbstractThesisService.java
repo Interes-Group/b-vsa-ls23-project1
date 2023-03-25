@@ -192,7 +192,7 @@ public abstract class AbstractThesisService<S, T, A> implements AutoCloseable {
      * Získanie zoznamu záverečných prác s rovnakým študentom ako vypracovateľom práce.
      *
      * @param studentId Identifikátor entity študenta v roly vypracovateľa práce.
-     * @return Zoznam inštancií entity záverečnej práce. V prípade chyby vráti prázdny zoznam.
+     * @return Inštanciu entity záverečnej práce. V prípade chyby vráti null.
      */
     public abstract A getThesisByStudent(Long studentId);
 
